@@ -32,6 +32,8 @@ class HolidayDoc
   @@item_date = ""
   @@holiday_date_str = ""
   #
+  @@base_url = nil
+  #
   @@output_json = nil
   #
   @@b_threshold_day = 14
@@ -53,6 +55,8 @@ class HolidayDoc
     charset = nil
     #
     begin
+      @@base_url = get_uri_wo_filename(url)
+      #
       html = open(url) do |f|
         charset = f.charset
         f.read
@@ -118,10 +122,24 @@ class HolidayDoc
     # Check next data
     next_url = nil
     if main_object.search('a').any? {|v| next_url = v.attribute("href"); v.text.include?("次へ") } then
-      ret_code = parse_data(next_url)
+      next_full_url = @@base_url + get_filename(next_url)
+      ret_code = parse_data(next_full_url)
     end
     #
     return true
+  end
+  #
+  def get_filename(url)
+    url =~ /([^\/]+?)([\?#].*)?$/
+    if $&.nil? then
+      url
+    else
+      $&
+    end
+  end
+  #
+  def get_uri_wo_filename(url)
+    url.gsub(get_filename(url),"")
   end
   #
   def read_data(url)
