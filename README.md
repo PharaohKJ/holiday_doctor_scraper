@@ -2,7 +2,7 @@
 野々市市、白山市の休日当番医を閲覧できるwebアプリケーション向けscaiperリポジトリです。
 
 ##スクレイピング
-石川県休日当番医情報を(http://i-search.pref.ishikawa.jp/index.php?a=3)を本scraiperを用いてjson化しております。
+[石川県休日当番医情報](http://i-search.pref.ishikawa.jp/index.php?a=3)を本scraiperを用いてjson化しております。
 
 ##開発チームとライセンスについて
 K.Ishiwatari (@watari3) ディベロッパー
