@@ -152,6 +152,8 @@ class HolidayDoc
     ret_code = parse_data(url)
     if (ret_code == true) then
       status_msg   = "success"
+      # sort by category
+      @@itembox_array.sort!{|a,b| a[:category] <=> b[:category]}
     else
       status_msg   = "fail"
     end
