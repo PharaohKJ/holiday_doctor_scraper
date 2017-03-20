@@ -1,10 +1,10 @@
 # holiday_doctor_scraper
-野々市市、白山市の休日当番医を閲覧できるwebアプリケーション向けscaiperリポジトリです。
+野々市市、白山市の休日当番医を閲覧できるwebアプリケーション向けscraperリポジトリです。
 
-##スクレイピング
-石川県休日当番医情報を(http://i-search.pref.ishikawa.jp/index.php?a=3)を本scraiperを用いてjson化しております。
+## スクレイピング
+[石川県休日当番医情報](http://i-search.pref.ishikawa.jp/index.php?a=3)を本scraperを用いてjson化しております。
 
-##開発チームとライセンスについて
+## 開発チームとライセンスについて
 K.Ishiwatari (@watari3) ディベロッパー
 ふぁらお加藤 (@pharaohkj) アドバイザー
 
