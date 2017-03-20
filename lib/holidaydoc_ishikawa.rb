@@ -3,6 +3,7 @@
 require 'open-uri'
 require 'nokogiri'
 require 'json'
+require 'holiday_jp'
 
 # ----------------------------------------------------------------------
 #  HolidayDoc
@@ -35,9 +36,6 @@ class HolidayDoc
   @@base_url = nil
   #
   @@output_json = nil
-  #
-  @@b_threshold_day = 14
-  @@f_threshold_day = 7
   #
   def initilize()
     @@count = 1
@@ -107,9 +105,27 @@ class HolidayDoc
       if /(\d+)(月)(\d+)(日)/ =~ v[:date] then
         month = $1
         mday  = $3
-        tdate = Date.today
-        ddate = Date.new(tdate.year, month.to_i, mday.to_i)
-        if ((ddate.yday + @@f_threshold_day) > tdate.yday) & ((ddate.yday - @@b_threshold_day) < tdate.yday) then
+        tday = Date.today
+        dday = Date.new(tday.year, month.to_i, mday.to_i)
+        if dday < tday then
+          dday = Date.new(tday.year + 1, month.to_i, mday.to_i)
+        end
+        #
+        if (tday.wday >= 1) && (tday.wday <= 5) then
+          # workday
+          if (HolidayJp.between(tday,tday+5-tday.wday).nil?) then
+            # next Sat
+            nday = tday+6-tday.wday
+          else
+            # 1st Data
+            nday = HolidayJp.between(tday,tday+5-tday.wday)[0].instance_variable_get('@date')
+          end
+        else
+          # weekday
+          nday = tday
+        end
+        # 
+        if (dday == nday) then
           # Remove :date key
           @@holiday_date_str = v[:date]
           v.delete(:date)
