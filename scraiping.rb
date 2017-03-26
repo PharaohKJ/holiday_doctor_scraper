@@ -4,6 +4,9 @@
 #
 require './lib/holidaydoc_ishikawa.rb'
 
+# Time Zone
+ENV['TZ'] = 'Asia/Tokyo'
+
 # URL
 url = 'http://i-search.pref.ishikawa.jp/toban/index.php?a=3'
 
