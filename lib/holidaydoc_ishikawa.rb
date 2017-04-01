@@ -111,14 +111,14 @@ class HolidayDoc
           dday = Date.new(tday.year + 1, month.to_i, mday.to_i)
         end
         #
-        if (tday.wday >= 1) && (tday.wday <= 5) then
+        if (tday.wday >= 1) && (tday.wday <= 6) then
           # workday
-          if (HolidayJp.between(tday,tday+5-tday.wday).nil?) then
-            # next Sat
-            nday = tday+6-tday.wday
+          if (HolidayJp.between(tday,tday+6-tday.wday).empty?) then
+            # next Sun
+            nday = tday+7-tday.wday
           else
             # 1st Data
-            nday = HolidayJp.between(tday,tday+5-tday.wday)[0].instance_variable_get('@date')
+            nday = HolidayJp.between(tday,tday+6-tday.wday)[0].instance_variable_get('@date')
           end
         else
           # weekday
@@ -164,7 +164,7 @@ class HolidayDoc
     # 
     current_time = DateTime.now
     next_time = current_time + 1
-    # 
+    #
     ret_code = parse_data(url)
     if (ret_code == true) then
       status_msg   = "success"
@@ -173,6 +173,11 @@ class HolidayDoc
     else
       status_msg   = "fail"
     end
+    #
+    if (@@itembox_array.empty?) then
+      status_msg = "fail"
+    end
+
     #
     @@header["thisversionrun"]    = current_time.rfc822
     @@header["thisversionstatus"] = status_msg
