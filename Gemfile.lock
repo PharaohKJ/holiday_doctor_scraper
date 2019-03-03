@@ -1,15 +1,17 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    mini_portile2 (2.1.0)
-    nokogiri (1.7.0.1)
-      mini_portile2 (~> 2.1.0)
+    holiday_jp (0.7.1)
+    mini_portile2 (2.4.0)
+    nokogiri (1.10.1)
+      mini_portile2 (~> 2.4.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  holiday_jp
   nokogiri
 
 BUNDLED WITH
-   1.14.3
+   1.16.1
