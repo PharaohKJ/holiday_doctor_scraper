@@ -3,7 +3,7 @@ GEM
   specs:
     holiday_jp (0.7.1)
     mini_portile2 (2.4.0)
-    nokogiri (1.10.1)
+    nokogiri (1.10.4)
       mini_portile2 (~> 2.4.0)
 
 PLATFORMS
@@ -14,4 +14,4 @@ DEPENDENCIES
   nokogiri
 
 BUNDLED WITH
-   1.16.1
+   1.17.2
