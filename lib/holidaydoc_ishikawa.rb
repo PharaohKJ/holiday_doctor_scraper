@@ -1,4 +1,4 @@
-# coding: utf-8
+# frozen_string_literal: true
 
 require 'open-uri'
 require 'nokogiri'
@@ -9,65 +9,59 @@ require 'holiday_jp'
 #  HolidayDoc
 # ----------------------------------------------------------------------
 class HolidayDoc
-  @@count  = 1
+  @@count = 1
   #
-  @@header   = { "name" => "holiday_doctor",    # json_name
-                 "count" => 1,                  # 
-                 "frequency" => "Daily",        # Daily or Weekly or Monthly
-                 "version" => 1,                # 
-                 "newdata" => true,             # true or false
-                 "lastrunstatus" => nil,        # success or fail
-                 "thisversionstatus" => nil,    # success or fail
-                 "nextrun" => nil,              # Date
-                 "thisversionrun" => nil,       # Date
-                 "results" => Hash::new }       # -> @@body
-  @@body     = { "collection1" => Hash::new,    # -> contents of holiday_doctor
-                 "collection2" => Hash::new }   # -> @@footer
-  @@footer   = { "date" => nil,                 # Date from content
-                 "index" => 1,                  # 
-                 "url" => nil }                 # url from reference url
+  @@header   = { 'name'              => 'holiday_doctor', # json_name
+                 'count'             => 1, #
+                 'frequency'         => 'Daily', # Daily or Weekly or Monthly
+                 'version'           => 1,                #
+                 'newdata'           => true,             # true or false
+                 'lastrunstatus'     => nil, # success or fail
+                 'thisversionstatus' => nil, # success or fail
+                 'nextrun'           => nil, # Date
+                 'thisversionrun'    => nil, # Date
+                 'results'           => {} } # -> @@body
+  @@body     = { 'collection1' => {},    # -> contents of holiday_doctor
+                 'collection2' => {} }   # -> @@footer
+  @@footer   = { 'date'  => nil, # Date from content
+                 'index' => 1, #
+                 'url'   => nil } # url from reference url
   #
-  @@itembox_array = Array::new
-  @@footer_array = Array::new
-  #
-  @@item_date = ""
-  @@holiday_date_str = ""
-  #
+  @@itembox_array = []
+  @@footer_array = []
+  @@item_date = ''
+  @@holiday_date_str = ''
   @@base_url = nil
-  #
   @@output_json = nil
-  #
-  def initilize()
+  def initilize
     @@count = 1
-    @@holiday_date_str = ""
+    @@holiday_date_str = ''
   end
-  #
+
   def parse_data(url)
-  #
-    hash_tbl = { "医療機関名".to_sym => :name,  # 
-                 "住所".to_sym => :address,     # 
-                 "電話番号".to_sym => :tel,     # 
-                 "科目名".to_sym => :category , # 
-                 "診療時間".to_sym => :time  }  # 
-    #
+    hash_tbl = {
+      '医療機関名': :name,
+      '住所':    :address,
+      '電話番号':  :tel,
+      '科目名':   :category,
+      '診療時間':  :time
+    }
     charset = nil
-    #
     begin
       @@base_url = get_uri_wo_filename(url)
-      #
-      html = open(url) do |f|
+      html = URI.open(url) do |f|
         charset = f.charset
         f.read
       end
-    rescue
+    rescue StandardError
       # Error処理
       return false
     end
 
-    index_name = Array::new
-    content_data = Array::new
-    itembox = Array::new
-    
+    index_name = []
+    content_data = []
+    itembox = []
+
     # temporal setting
     charset = 'UTF-8'
 
@@ -79,124 +73,103 @@ class HolidayDoc
     item_objects = doc.xpath('//div[@id="sub_date"]|//div[@id="item-box"]')
 
     # Create table data from html@id=item-box
-    item_objects.each {|object|
-      if (object.attribute("id").text == 'sub_date') then
-        @@itemdate = object.children.text
-      end
-      object.search('th').each {|item| index_name.push(item.text.gsub(/[  ]/,''))}
-      object.search('td').each {|item| content_data.push(item.text.gsub(/[\n\t  ]/,'').gsub(" ",""))}
-      itemhash = Hash[index_name.map{|v| hash_tbl[v.to_sym]}.zip(content_data)]
+    item_objects.each do |object|
+      @@itemdate = object.children.text if object.attribute('id').text == 'sub_date'
+      object.search('th').each { |item| index_name.push(item.text.gsub(/[  ]/, '')) }
+      object.search('td').each { |item| content_data.push(item.text.gsub(/[\n\t  ]/, '').gsub(' ', '')) }
+      itemhash = Hash[index_name.map { |v| hash_tbl[v.to_sym] }.zip(content_data)]
 
       # Add date into :date key
       unless itemhash.empty?
-        itemhash.store(:date,@@itemdate)
+        itemhash.store(:date, @@itemdate)
         itembox << itemhash
       end
-    }
+    end
 
     # Create required data
-    itembox.sort_by!{|h| h[:category]}.each {|array|
-      array["index"] = @@count
-      array["url"]   = url
-      @@count = @@count + 1
-    }
-    #
-    itembox.each {|v|
-      if /(\d+)(月)(\d+)(日)/ =~ v[:date] then
-        month = $1
-        mday  = $3
-        tday = Date.today
-        dday = Date.new(tday.year, month.to_i, mday.to_i)
-        if dday < tday then
-          dday = Date.new(tday.year + 1, month.to_i, mday.to_i)
-        end
-        #
-        if (tday.wday >= 1) && (tday.wday <= 6) then
-          # workday
-          if (HolidayJp.between(tday,tday+6-tday.wday).empty?) then
-            # next Sun
-            nday = tday+7-tday.wday
-          else
-            # 1st Data
-            nday = HolidayJp.between(tday,tday+6-tday.wday)[0].instance_variable_get('@date')
-          end
-        else
-          # weekday
-          nday = tday
-        end
-        # 
-        if (dday == nday) then
-          # Remove :date key
-          @@holiday_date_str = v[:date]
-          v.delete(:date)
-          # Add itembox to itembox_array
-          @@itembox_array << v
-        end
-      end
-    }
+    itembox.sort_by! { |h| h[:category] }.each do |array|
+      array['index'] = @@count
+      array['url']   = url
+      @@count += 1
+    end
+    itembox.each do |v|
+      next unless /(\d+)(月)(\d+)(日)/ =~ v[:date]
+      month = Regexp.last_match(1)
+      mday  = Regexp.last_match(3)
+      tday = Date.today
+      dday = Date.new(tday.year, month.to_i, mday.to_i)
+      dday = Date.new(tday.year + 1, month.to_i, mday.to_i) if dday < tday
+      nday = if (tday.wday >= 1) && (tday.wday <= 6)
+               # workday
+               if HolidayJp.between(tday, tday + 6 - tday.wday).empty?
+                 # next Sun
+                 tday + 7 - tday.wday
+               else
+                 # 1st Data
+                 HolidayJp.between(tday, tday + 6 - tday.wday)[0].instance_variable_get('@date')
+               end
+             else
+               # weekday
+               tday
+             end
+      next unless dday == nday
+      # Remove :date key
+      @@holiday_date_str = v[:date]
+      v.delete(:date)
+      # Add itembox to itembox_array
+      @@itembox_array << v
+    end
 
     # Check next data
     next_url = nil
-    if main_object.search('a').any? {|v| next_url = v.attribute("href"); v.text.include?("次へ") } then
+    if main_object.search('a').any? { |v| next_url = v.attribute('href'); v.text.include?('次へ') }
       next_full_url = @@base_url + get_filename(next_url)
       ret_code = parse_data(next_full_url)
     end
-    #
-    return true
+    true
   end
-  #
+
   def get_filename(url)
-    url =~ /([^\/]+?)([\?#].*)?$/
-    if $&.nil? then
+    url =~ %r{([^/]+?)([?#].*)?$}
+    if $&.nil?
       url
     else
       $&
     end
   end
-  #
+
   def get_uri_wo_filename(url)
-    url.gsub(get_filename(url),"")
+    url.gsub(get_filename(url), '')
   end
-  #
+
   def read_data(url)
-    index_name   = Array::new
-    content_data = Array::new
-    # 
+    index_name   = []
+    content_data = []
     current_time = DateTime.now
     next_time = current_time + 1
-    #
     ret_code = parse_data(url)
-    if (ret_code == true) then
-      status_msg   = "success"
+    if ret_code == true
+      status_msg = 'success'
       # sort by category
-      @@itembox_array.sort!{|a,b| a[:category] <=> b[:category]}
+      @@itembox_array.sort! { |a, b| a[:category] <=> b[:category] }
     else
-      status_msg   = "fail"
+      status_msg = 'fail'
     end
-    #
-    if (@@itembox_array.empty?) then
-      status_msg = "fail"
-    end
+    status_msg = 'fail' if @@itembox_array.empty?
 
-    #
-    @@header["thisversionrun"]    = current_time.rfc822
-    @@header["thisversionstatus"] = status_msg
-    @@header["nextrun"]           = next_time.rfc822
-    #
-    @@footer["date"]              = @@holiday_date_str
-    @@footer["url"]               = url
-    #
+    @@header['thisversionrun']    = current_time.rfc822
+    @@header['thisversionstatus'] = status_msg
+    @@header['nextrun']           = next_time.rfc822
+    @@footer['date']              = @@holiday_date_str
+    @@footer['url']               = url
     @@footer_array << @@footer
-    #
-    @@body["collection1"]         = @@itembox_array
-    @@body["collection2"]         = @@footer_array
-    #
-    @@header["results"]           = @@body
+    @@body['collection1']         = @@itembox_array
+    @@body['collection2']         = @@footer_array
+    @@header['results']           = @@body
   end
-  def write_json()
-    #
+
+  def write_json
     @@output_json = JSON.generate(@@header)
-    #
     puts @@output_json
   end
 end
