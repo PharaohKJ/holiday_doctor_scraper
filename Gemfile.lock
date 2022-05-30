@@ -2,14 +2,12 @@ GEM
   remote: https://rubygems.org/
   specs:
     holiday_jp (0.8.1)
-    mini_portile2 (2.8.0)
-    nokogiri (1.13.6)
-      mini_portile2 (~> 2.8.0)
+    nokogiri (1.13.6-x86_64-darwin)
       racc (~> 1.4)
     racc (1.6.0)
 
 PLATFORMS
-  ruby
+  x86_64-darwin-20
 
 DEPENDENCIES
   holiday_jp
