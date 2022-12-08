@@ -2,9 +2,9 @@ GEM
   remote: https://rubygems.org/
   specs:
     holiday_jp (0.8.1)
-    nokogiri (1.13.9-x86_64-darwin)
+    nokogiri (1.13.10-x86_64-darwin)
       racc (~> 1.4)
-    racc (1.6.0)
+    racc (1.6.1)
 
 PLATFORMS
   x86_64-darwin-20
@@ -15,4 +15,4 @@ DEPENDENCIES
   nokogiri
 
 BUNDLED WITH
-   2.3.10
+   2.3.7
